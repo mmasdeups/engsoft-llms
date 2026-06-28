@@ -1,7 +1,8 @@
 import os
+import json # New import
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse # Modified import
 from pydantic import BaseModel
 from typing import List
 from openai import AsyncOpenAI
@@ -35,32 +36,50 @@ class ChatRequest(BaseModel):
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     try:
-        # Format the messages array for the OpenAI client
         api_messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
-        
-        # Call the OpenAI-compatible endpoint
-        response = await client.chat.completions.create(
-            model=MODEL,
-            messages=api_messages
-        )
-        
-        # Parse the assistant message and token usage
-        choice = response.choices[0]
-        assistant_message = {
-            "role": choice.message.role,
-            "content": choice.message.content or ""
-        }
-        
-        usage = {
-            "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-            "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-            "total_tokens": response.usage.total_tokens if response.usage else 0
-        }
-        
-        return {
-            "message": assistant_message,
-            "usage": usage
-        }
+
+        async def generate_chunks():
+            full_content = ""
+            final_usage = None
+            
+            response_stream = await client.chat.completions.create(
+                model=MODEL,
+                messages=api_messages,
+                stream=True, # New: Enable streaming
+                stream_options={"include_usage": True} # New: Include usage in final chunk
+            )
+
+            async for chunk in response_stream:
+                try:
+                    # Guard every attribute access
+                    if hasattr(chunk, "choices") and chunk.choices and chunk.choices[0].delta.content:
+                        fragment = chunk.choices[0].delta.content
+                        full_content += fragment
+                        yield f"data: {json.dumps({'text': fragment})}\n\n"
+                    
+                    if hasattr(chunk, "usage") and chunk.usage:
+                        final_usage = {
+                            "prompt_tokens": getattr(chunk.usage, "prompt_tokens", 0),
+                            "completion_tokens": getattr(chunk.usage, "completion_tokens", 0),
+                            "total_tokens": getattr(chunk.usage, "total_tokens", 0)
+                        }
+                except Exception as e:
+                    # Wrap per-chunk processing so one bad chunk can't kill the whole stream
+                    print(f"Error processing chunk: {e}")
+            
+            # Send the final token usage
+            if final_usage:
+                yield f"data: {json.dumps({'usage': final_usage})}\n\n"
+            
+            yield "data: [DONE]\n\n" # Signal end of stream
+            
+        return StreamingResponse(generate_chunks(), media_type="text/event-stream",
+                                 headers={
+                                     "Cache-Control": "no-cache",
+                                     "X-Accel-Buffering": "no",
+                                     "Connection": "keep-alive"
+                                 }) # New: Return StreamingResponse with anti-buffering headers
+
     except Exception as e:
         print(f"Error calling OpenAI API: {e}")
         raise HTTPException(status_code=500, detail=str(e))

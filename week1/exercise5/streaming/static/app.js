@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Helper to append a message to the Chat Area
-    function appendMessageToChat(role, content) {
+    function appendMessageToChat(role, content) { // Removed isStreaming parameter, as it's not strictly necessary for the initial append
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${role}-message`;
 
@@ -47,20 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const contentDiv = document.createElement("div");
         contentDiv.className = "message-content";
+        contentDiv.textContent = content; // Set initial content as text
 
-        // If assistant, parse Markdown using marked.js
-        if (role === "assistant" && window.marked) {
-            contentDiv.innerHTML = window.marked.parse(content);
-        } else {
-            // For user messages or if marked is not loaded, escape HTML and render as text
-            contentDiv.textContent = content;
-        }
-
-        msgDiv.appendChild(contentDiv);
+        msgDiv.appendChild(contentDiv); // Append contentDiv here
         chatMessages.appendChild(msgDiv);
         
         // Auto-scroll to bottom of the chat container
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        return contentDiv; // Return contentDiv for direct manipulation
     }
 
     // Display typing indicator
@@ -101,24 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
         this.style.height = (this.scrollHeight - 4) + "px";
     });
 
-    // Call FastAPI backend proxy
-    async function callBackend(chatMessages) {
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ messages: chatMessages })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `Server error (${response.status})`);
-        }
-
-        return await response.json();
-    }
-
     // Handle sending message
     async function sendMessage() {
         const text = userInput.value.trim();
@@ -140,28 +117,93 @@ document.addEventListener("DOMContentLoaded", () => {
         sendBtn.disabled = true;
         showTypingIndicator();
 
+        let assistantMessageContent = "";
+        let fullMessageElement = null; // Reference to the message content div to apply markdown to later
+
         try {
             // 5. Send POST request to FastAPI backend proxy
-            const data = await callBackend(messages);
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ messages: messages })
+            });
 
+            if (!response.ok) {
+                // If the response is not ok, attempt to read error data as JSON
+                const errorText = await response.text();
+                try {
+                    const errorData = JSON.parse(errorText);
+                    throw new Error(errorData.detail || `Server error (${response.status})`);
+                } catch (jsonError) {
+                    // If parsing as JSON fails, just use the raw text
+                    throw new Error(`Server error (${response.status}): ${errorText}`);
+                }
+            }
+
+            // Create an empty message bubble for the assistant to stream into
+            fullMessageElement = appendMessageToChat("assistant", "");
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+
+                // Process complete SSE data lines
+                let lines = buffer.split('\n');
+                buffer = lines.pop(); // Keep incomplete last line in buffer
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const jsonStr = line.substring(6);
+                        try {
+                            if (jsonStr === '[DONE]') {
+                                // Stream finished, markdown render the full content
+                                if (window.marked) {
+                                    fullMessageElement.innerHTML = window.marked.parse(assistantMessageContent);
+                                }
+                                continue; // Skip to next line, or break if this is indeed the last expected line
+                            }
+                            const data = JSON.parse(jsonStr);
+                            if (data.text) {
+                                assistantMessageContent += data.text;
+                                fullMessageElement.textContent = assistantMessageContent; // Update live
+                                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+                            } else if (data.usage) {
+                                updateTokenUsage(data.usage);
+                            }
+                        } catch (e) {
+                            console.error("Error parsing SSE JSON:", e, "JSON string:", jsonStr);
+                        }
+                    }
+                }
+            }
+            
             // 6. Remove typing indicator
             removeTypingIndicator();
 
-            // 7. Add Assistant response to UI and state
-            const assistantMsg = data.message;
-            appendMessageToChat("assistant", assistantMsg.content);
-            messages.push(assistantMsg);
+            // 7. Add Assistant response to state (full message)
+            messages.push({ role: "assistant", content: assistantMessageContent });
 
-            // 8. Update Context Viewer and Token Usage stats
+            // 8. Update Context Viewer
             updateContextViewer();
-            updateTokenUsage(data.usage);
 
         } catch (error) {
             removeTypingIndicator();
             console.error("Chat error:", error);
             
             // Render error message in assistant style
-            appendMessageToChat("assistant", `❌ **Error:** Failed to get response. ${error.message}`);
+            if (fullMessageElement) {
+                fullMessageElement.innerHTML = `❌ **Error:** Failed to get response. ${error.message}`;
+            } else {
+                appendMessageToChat("assistant", `❌ **Error:** Failed to get response. ${error.message}`);
+            }
         } finally {
             // Re-enable input & button
             userInput.disabled = false;
