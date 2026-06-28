@@ -87,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // Remove typing indicator
     function removeTypingIndicator() {
         const indicator = document.getElementById("typing-indicator");
         if (indicator) {
@@ -100,18 +101,26 @@ document.addEventListener("DOMContentLoaded", () => {
         this.style.height = (this.scrollHeight - 4) + "px";
     });
 
-    // Handle Enter to Submit (and Shift+Enter for newline)
-    userInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            chatForm.dispatchEvent(new Event("submit"));
-        }
-    });
+    // Call FastAPI backend proxy
+    async function callBackend(chatMessages) {
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ messages: chatMessages })
+        });
 
-    // Form Submission Handler
-    chatForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `Server error (${response.status})`);
+        }
+
+        return await response.json();
+    }
+
+    // Handle sending message
+    async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
 
@@ -133,20 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             // 5. Send POST request to FastAPI backend proxy
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ messages })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Server error (${response.status})`);
-            }
-
-            const data = await response.json();
+            const data = await callBackend(messages);
 
             // 6. Remove typing indicator
             removeTypingIndicator();
@@ -172,6 +168,20 @@ document.addEventListener("DOMContentLoaded", () => {
             sendBtn.disabled = false;
             userInput.focus();
         }
+    }
+
+    // Handle Enter to Submit (and Shift+Enter for newline)
+    userInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Form Submission Handler
+    chatForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        sendMessage();
     });
 
     // Clear Conversation Context
