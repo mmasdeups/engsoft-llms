@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY-CHATGPT</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Marked for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Chat Area (Left/Main Panel) -->
+        <main class="chat-section">
+            <header class="app-header">
+                <div class="logo">
+                    <span class="logo-icon">💬</span>
+                    <h1>EASY-CHATGPT</h1>
+                </div>
+                <button id="clear-btn" class="secondary-btn" title="Clear Conversation">Clear Context</button>
+            </header>
+            
+            <div id="chat-messages" class="chat-messages">
+                <!-- Welcome Message -->
+                <div class="message assistant-message">
+                    <div class="message-content">
+                        Hello! Welcome to <strong>EASY-CHATGPT</strong>. Ask me anything, and watch the context array and token counts grow in the panel on the right!
+                    </div>
+                </div>
+            </div>
+            
+            <form id="chat-form" class="chat-form">
+                <textarea id="user-input" placeholder="Type a message... (Press Enter to send, Shift+Enter for newline)" rows="1" required></textarea>
+                <button type="submit" id="send-btn" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" class="send-icon">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                </button>
+            </form>
+        </main>
+        
+        <!-- Context & Token Panel (Right Panel) -->
+        <aside class="context-section">
+            <header class="panel-header">
+                <h2>Context & Token Tracker</h2>
+            </header>
+            
+            <div class="panel-content">
+                <!-- Token Usage Metrics -->
+                <section class="metrics-card">
+                    <h3>Token Usage (Last Response)</h3>
+                    <div class="token-grid">
+                        <div class="token-stat">
+                            <span class="stat-value" id="prompt-tokens">0</span>
+                            <span class="stat-label">Prompt</span>
+                        </div>
+                        <div class="token-stat">
+                            <span class="stat-value" id="completion-tokens">0</span>
+                            <span class="stat-label">Completion</span>
+                        </div>
+                        <div class="token-stat total">
+                            <span class="stat-value" id="total-tokens">0</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Messages Array View -->
+                <section class="context-array-card">
+                    <h3>Conversation Context Payload</h3>
+                    <p class="description">This is the messages array payload sent to the backend proxy for the model:</p>
+                    <div class="json-container">
+                        <pre><code id="json-viewer" class="language-json">[]</code></pre>
+                    </div>
+                </section>
+            </div>
+        </aside>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
