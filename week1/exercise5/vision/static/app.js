@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Helper to append a message to the Chat Area
-    function appendMessageToChat(role, content) { // Removed isStreaming parameter, as it's not strictly necessary for the initial append
+    function appendMessageToChat(role, content, imageDataUri = null) { // Added imageDataUri parameter
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${role}-message`;
 
@@ -97,7 +97,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const contentDiv = document.createElement("div");
         contentDiv.className = "message-content";
-        contentDiv.textContent = content; // Set initial content as text
+        
+        // Check if it's a user message with an attached image
+        if (role === "user" && imageDataUri) {
+            // Create image thumbnail element
+            const imgThumbnail = document.createElement('img');
+            imgThumbnail.src = imageDataUri;
+            imgThumbnail.alt = "Attached image";
+            imgThumbnail.style.cssText = "height: 120px; border-radius: 8px; margin-top: 8px; cursor: pointer;"; // Basic styling
+            imgThumbnail.onclick = () => window.open(imageDataUri); // Allow opening in full size
+
+            // Append thumbnail and then the text content
+            contentDiv.appendChild(imgThumbnail);
+            const textSpan = document.createElement('span'); // Wrap text in a span to ensure it appears below the image
+            textSpan.textContent = content;
+            contentDiv.appendChild(textSpan);
+        } else {
+            // For assistant messages or user messages without images, set text content directly
+            contentDiv.textContent = content;
+        }
 
         msgDiv.appendChild(contentDiv); // Append contentDiv here
         chatMessages.appendChild(msgDiv);
