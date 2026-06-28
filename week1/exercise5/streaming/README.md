@@ -1,24 +1,30 @@
-# FastAPI Application with Docker
+# EASY-CHATGPT (Streaming) — Docker
 
-This application containerizes a FastAPI app that interacts with an LLM via an OpenAI-compatible API.
+A FastAPI app that proxies a chat frontend to an LLM over the OpenAI-compatible API,
+streaming the reply token by token. Runs in Docker via `docker compose up`.
 
 ## Setup
 
-1.  **Create a `.env` file** in the same directory as this README:
-    ```
-    # Example .env file
-    OPENAI_API_BASE="http://host.docker.internal:11434/v1"
-    OPENAI_API_KEY="ollama"
-    # Add any other environment variables your app needs
-    ```
-    
-    **Important:** When connecting to Ollama running on your host machine, use `http://host.docker.internal:11434/v1` for the `OPENAI_API_BASE`. Do NOT use `localhost` or `127.0.0.1` as these will refer to the container's loopback interface, not your host machine.
+1. Copy `.env.example` to `.env` and fill in your values:
+OPENAI_BASE_URL=http://host.docker.internal:11434/v1
 
-2.  **Build and run the application**:
-    ```bash
-    docker compose up --build
-    ```
+OPENAI_API_KEY=ollama
 
-## Access the application
+MODEL=llama3.1:8b
 
-Once the application is running, you can access it at: http://localhost:6662
+   **Important:** to reach Ollama running on your host machine from inside the
+   container, use `http://host.docker.internal:11434/v1` — NOT `localhost` or
+   `127.0.0.1`, which refer to the container itself, not your host.
+
+2. Make sure Ollama is running on the host with the model pulled
+   (e.g. `ollama pull llama3.1:8b`).
+
+3. Build and run:
+
+```bash
+   docker compose up --build
+```
+
+## Access
+
+Open http://localhost:6662 in your browser.
