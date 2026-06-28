@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 attachedImage = e.target.result;
                 attachedImagePreview.innerHTML = `
                     <div class="attached-image-item">
+                        <img src="${attachedImage}" style="height:40px;border-radius:4px;vertical-align:middle;margin-right:8px;">
                         <span>${file.name}</span>
                         <button class="remove-image-btn" aria-label="Remove image">&times;</button>
                     </div>
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Add event listener to the remove button
                 attachedImagePreview.querySelector('.remove-image-btn').addEventListener('click', () => {
                     attachedImage = null;
-                    imageInput.value = ''; // Clear the file input
+                    imageInput.value = '';
                     attachedImagePreview.innerHTML = '';
                 });
             }
@@ -163,6 +164,18 @@ document.addEventListener("DOMContentLoaded", () => {
         // Add user message to UI and state
         appendMessageToChat("user", text); // Still display the text part of the message
         messages.push({ role: "user", content: messageContent });
+
+ 	// If an image is attached, add its thumbnail to the user's chat bubble
+        if (attachedImage) {
+            const lastMsg = chatMessages.lastElementChild;
+            const contentDiv = lastMsg.querySelector(".message-content");
+            if (contentDiv) {
+                const img = document.createElement("img");
+                img.src = attachedImage;
+                img.style.cssText = "max-height:120px;border-radius:8px;display:block;margin-top:8px;";
+                contentDiv.appendChild(img);
+            }
+        }
         
         // Clear attached image and preview after sending
         attachedImage = null;
