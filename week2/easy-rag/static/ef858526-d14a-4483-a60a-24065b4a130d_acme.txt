@@ -1,0 +1,5 @@
+Acme Robotics was founded in 2019 in Barcelona by Dr. Elena Vidal.
+The company builds warehouse robots. Its flagship product is the Carrier-7,
+a mobile robot that can lift up to 45 kilograms and runs for 9 hours on one charge.
+Acme Robotics has 120 employees and its CEO is Dr. Elena Vidal.
+The Carrier-7 was released in March 2023 and costs 18,000 euros.
