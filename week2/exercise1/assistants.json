@@ -1,0 +1,9 @@
+[
+  {
+    "id": "d1eacaa3-958e-4bb1-a3d4-7ac0c8678384",
+    "name": "RoboFacts",
+    "system_prompt": "You are a precise assistant that answers only from the provided context. Be concise.",
+    "prompt_template": "\nUse only the information in the context below to answer the question. If the answer is not in the context, say you do not know.\n\nContext:\n----\n{context}\n----\n\nQuestion: {user_input}\nQuestion: {user_input}",
+    "knowledge": "Acme Robotics was founded in 2019 in Barcelona by Dr. Elena Vidal.\nThe company builds warehouse robots. Its flagship product is the Carrier-7,\na mobile robot that can lift up to 45 kilograms and runs for 9 hours on one charge.\nAcme Robotics has 120 employees and its CEO is Dr. Elena Vidal.\nThe Carrier-7 was released in March 2023 and costs 18,000 euros.\n"
+  }
+]
