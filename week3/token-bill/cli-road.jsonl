@@ -1,0 +1,4 @@
+{"ts": 1788612526.7247913, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 378, "completion_tokens": 69, "total_tokens": 447}
+{"ts": 1788612527.7303102, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 1090, "completion_tokens": 122, "total_tokens": 1212}
+{"ts": 1788612536.674856, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 1139, "completion_tokens": 164, "total_tokens": 1303}
+{"ts": 1788612540.839435, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 1342, "completion_tokens": 30, "total_tokens": 1372}

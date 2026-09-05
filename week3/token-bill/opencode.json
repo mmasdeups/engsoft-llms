@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "meter/meter",
+  "small_model": "meter/meter",
+  "provider": {
+    "meter": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LiteLLM meter",
+      "options": {
+        "baseURL": "http://localhost:4000/v1",
+        "apiKey": "anything"
+      },
+      "models": {
+        "meter": {
+          "name": "meter (gpt-4.1-mini via LiteLLM)",
+          "tool_call": true
+        }
+      }
+    }
+  },
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest", "--browser", "chromium"],
+      "enabled": true
+    }
+  }
+}

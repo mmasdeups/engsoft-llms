@@ -1,0 +1,6 @@
+{"ts": 1788612668.8490906, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 10269, "completion_tokens": 187, "total_tokens": 10456}
+{"ts": 1788612669.913583, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 640, "completion_tokens": 579, "total_tokens": 1219}
+{"ts": 1788612672.2789915, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 10475, "completion_tokens": 51, "total_tokens": 10526}
+{"ts": 1788612674.1756728, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 10859, "completion_tokens": 230, "total_tokens": 11089}
+{"ts": 1788612675.8529146, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 11277, "completion_tokens": 47, "total_tokens": 11324}
+{"ts": 1788612677.3679829, "ok": true, "model": "gemini-2.5-flash", "prompt_tokens": 11784, "completion_tokens": 182, "total_tokens": 11966}
