@@ -1,0 +1,19 @@
+# Part 2 - both roads, one model, one meter.
+#
+#   export OPENROUTER_API_KEY=sk-or-...
+#   cd week3/token-bill
+#   PYTHONPATH="$PWD" METER_LOG=cli-road.jsonl \
+#       litellm --config litellm_part2.yaml --port 4000
+#
+# Restart with METER_LOG=browser-road.jsonl before the second road so the two
+# totals never mix.
+
+model_list:
+  - model_name: meter
+    litellm_params:
+      model: openrouter/openai/gpt-4.1-mini
+      api_key: os.environ/OPENROUTER_API_KEY
+
+litellm_settings:
+  callbacks: token_meter.proxy_handler_instance
+  drop_params: true

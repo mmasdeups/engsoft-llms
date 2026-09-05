@@ -1,0 +1,22 @@
+# Part 1 - the registry tax, measured on the local model.
+#
+# Before using this, build a context-safe variant of qwen3:14b so that Ollama
+# cannot silently truncate the prompt (see README.md, "the num_ctx trap"):
+#
+#   printf 'FROM qwen3:14b\nPARAMETER num_ctx 16384\n' > Modelfile
+#   ollama create qwen3-14b-16k -f Modelfile
+#
+# Then:
+#   cd week3/token-bill
+#   PYTHONPATH="$PWD" METER_LOG=part1-baseline.jsonl \
+#       litellm --config litellm_part1.yaml --port 4000
+
+model_list:
+  - model_name: meter
+    litellm_params:
+      model: ollama_chat/qwen3-14b-16k
+      api_base: http://localhost:11434
+
+litellm_settings:
+  callbacks: token_meter.proxy_handler_instance
+  drop_params: true
